@@ -1,28 +1,41 @@
-# salesforce_wrapper
+# Salesforce Wrapper
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/salesforce_wrapper`. To experiment with that code, run `bin/console` for an interactive prompt.
+[![Build Status](https://travis-ci.org/gocardless/salesforce_wrapper.svg)](https://travis-ci.org/gocardless/salesforce_wrapper)
 
-TODO: Delete this and the text above, and describe your gem
+A wrapper for [Restforce](https://github.com/ejholmes/restforce) which provides customised handling of exceptions and simple global configuration.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'salesforce_wrapper'
+gem 'salesforce_wrapper', github: 'gocardless/salesforce_wrapper'
 ```
 
 And then execute:
 
     $ bundle
 
-Or install it yourself as:
-
-    $ gem install salesforce_wrapper
-
 ## Usage
 
-TODO: Write usage instructions here
+Simply call methods on `Salesforce` in the same way as you would on a Restforce client instance.
+
+```ruby
+Salesforce.find("Opportunity", "an ID goes here")
+```
+
+First, you'll need to set `Salesforce` with `config` (which will be used to instantiate a Restforce client) and an `exception_handler`, a lambda which will be called when a `Faraday::ClientError` occurs (for example when a validation error occurs on creating or saving a Salesforce record). Other kinds of exceptions will be raised as normal.
+
+Add the following to `config/initializers/salesforce.rb`:
+
+```ruby
+require 'yaml'
+Salesforce.config = YAML.load_file("/path/to/restforce.yml")
+
+Salesforce.exception_handler = lambda do |method, exception, arguments|
+  AdminMailer.salesforce_error(method.to_s, exception.message, arguments).deliver
+end
+```
 
 ## Development
 
@@ -32,8 +45,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/salesforce_wrapper. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
-
+Bug reports and pull requests are welcome on GitHub at https://github.com/gocardless/salesforce_wrapper. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
 
 ## License
 
